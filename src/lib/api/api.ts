@@ -4,7 +4,6 @@ const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL,
   headers: {
     Accept: "application/json",
-    "Content-Type": "application/json",
   },
 });
 
@@ -16,7 +15,6 @@ api.interceptors.request.use(
       if (authStorage) {
         try {
           const parsed = JSON.parse(authStorage);
-
           const token = parsed?.state?.accessToken;
 
           if (token) {

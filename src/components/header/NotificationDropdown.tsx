@@ -86,7 +86,7 @@ export default function NotificationDropdown() {
         </div>
 
         <ul className="flex custom-scrollbar h-auto flex-col overflow-y-auto">
-          {/* Example notification items */}
+
           <li>
             <DropdownItem
               onItemClick={closeDropdown}
@@ -377,7 +377,6 @@ export default function NotificationDropdown() {
               </span>
             </DropdownItem>
           </li>
-          {/* Add more items as needed */}
         </ul>
         <Link
           href="/"

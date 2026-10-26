@@ -1,19 +1,22 @@
 "use client";
 
-import { useSidebar } from "@/context/SidebarContext";
+import { useAuthStore } from "@/modules/auth/store/useAuthStore";
+import { useRouter } from "@/i18n/navigation";
+import { useEffect } from "react";
+
+import { SidebarProvider, useSidebar } from "@/context/SidebarContext";
+
 import AppHeader from "@/layout/AppHeader";
 import AppSidebar from "@/layout/AppSidebar";
 import Backdrop from "@/layout/Backdrop";
-import React from "react";
 
-export default function AdminLayout({
+function AdminContent({
   children,
 }: {
   children: React.ReactNode;
 }) {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
 
-  // Dynamic class for main content margin based on sidebar state
   const mainContentMargin = isMobileOpen
     ? "ml-0"
     : isExpanded || isHovered
@@ -21,19 +24,48 @@ export default function AdminLayout({
       : "lg:ml-[90px]";
 
   return (
-    <div className="min-h-screen xl:flex">
-      {/* Sidebar and Backdrop */}
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 xl:flex">
       <AppSidebar />
       <Backdrop />
-      {/* Main Content Area */}
+
       <div
-        className={`flex-1 transition-all  duration-300 ease-in-out ${mainContentMargin}`}
+        className={`flex-1 transition-all duration-300 ease-in-out ${mainContentMargin}`}
       >
-        {/* Header */}
         <AppHeader />
-        {/* Page Content */}
-        <div className="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">{children}</div>
+
+        <main className="mx-auto max-w-(--breakpoint-2xl) p-4 md:p-6">
+          {children}
+        </main>
       </div>
     </div>
+  );
+}
+
+export default function AdminLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const hasHydrated = useAuthStore((state) => state.hasHydrated);
+
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!hasHydrated) return;
+
+    if (!accessToken) {
+      router.replace("/login");
+    }
+  }, [hasHydrated, accessToken, router]);
+
+  if (!hasHydrated || !accessToken) {
+    return null;
+  }
+
+  return (
+    <SidebarProvider>
+      <AdminContent>{children}</AdminContent>
+    </SidebarProvider>
   );
 }

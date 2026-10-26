@@ -60,6 +60,10 @@ export const useAuthStore = create<AuthState>()(
           expiresIn: null,
           isAuthenticated: false,
         });
+
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("cimas-auth");
+        }
       },
 
       setHasHydrated: (value) => {

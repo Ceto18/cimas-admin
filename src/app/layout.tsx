@@ -1,14 +1,10 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Outfit } from "next/font/google";
+import { Toaster } from "react-hot-toast";
+
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const outfit = Outfit({
   subsets: ["latin"],
 });
 
@@ -22,14 +18,43 @@ export const metadata: Metadata = {
   applicationName: "CIMAS",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html
-      lang="es"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">
+    <html lang="es" suppressHydrationWarning>
+      <body className={outfit.className}>
         {children}
+
+        <Toaster
+          position="top-center"
+          toastOptions={{
+            duration: 3000,
+            style: {
+              marginTop: "80px",
+              borderRadius: "12px",
+              padding: "14px 18px",
+              fontSize: "14px",
+              fontWeight: 500,
+            },
+            success: {
+              style: {
+                background: "#ECFDF3",
+                color: "#027A48",
+                border: "1px solid #A6F4C5",
+              },
+            },
+            error: {
+              style: {
+                background: "#FEF3F2",
+                color: "#B42318",
+                border: "1px solid #FECDCA",
+              },
+            },
+          }}
+        />
       </body>
     </html>
   );
