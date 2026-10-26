@@ -26,10 +26,20 @@ const nextConfig: NextConfig = {
         pathname: "/**",
       },
     ],
+
+    remotePatterns: [
+      {
+        protocol: "http",
+        hostname: "209.145.55.109",
+        port: "8000",
+        pathname: "/storage/**",
+      },
+    ],
   },
 
   turbopack: {
     root: __dirname,
+
     rules: {
       "*.css": {
         loaders: ["@tailwindcss/turbopack"],

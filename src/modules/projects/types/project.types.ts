@@ -1,3 +1,9 @@
+export interface ProjectType {
+  id: number;
+  uuid: string;
+  name: string;
+}
+
 export interface ProjectPhoto {
   id: number;
   uuid: string;
@@ -17,6 +23,7 @@ export interface Project {
   title: string;
   description: string;
   photos: ProjectPhoto[];
+  type_project: ProjectType;
   created_at: string;
   updated_at: string;
 }

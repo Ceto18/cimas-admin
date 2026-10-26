@@ -16,6 +16,17 @@ interface MultiSelectProps {
   onChange?: (selected: string[]) => void;
   disabled?: boolean;
   placeholder?: string;
+
+  /**
+   * Si es true, solo permite una opción seleccionada.
+   */
+  singleSelect?: boolean;
+
+  /**
+   * Si es false, no permite dejar el control sin selección
+   * una vez que ya existe un valor seleccionado.
+   */
+  allowEmpty?: boolean;
 }
 
 const MultiSelect: React.FC<MultiSelectProps> = ({
@@ -26,87 +37,228 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
   onChange,
   disabled = false,
   placeholder = "Select options",
+  singleSelect = false,
+  allowEmpty = true,
 }) => {
   const isControlled = value !== undefined;
+
   const [internalSelected, setInternalSelected] =
     useState<string[]>(defaultSelected);
-  const selectedOptions = isControlled ? value : internalSelected;
+
+  const selectedOptions = isControlled
+    ? value
+    : internalSelected;
+
   const [isOpen, setIsOpen] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const dropdownRef =
+    useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (
+      event: MouseEvent
+    ) => {
       if (
         dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
+        !dropdownRef.current.contains(
+          event.target as Node
+        )
       ) {
         setIsOpen(false);
       }
     };
 
     if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener(
+        "mousedown",
+        handleClickOutside
+      );
+
       return () =>
-        document.removeEventListener("mousedown", handleClickOutside);
+        document.removeEventListener(
+          "mousedown",
+          handleClickOutside
+        );
     }
   }, [isOpen]);
 
-  const updateSelection = (newSelected: string[]) => {
-    if (!isControlled) setInternalSelected(newSelected);
+  const updateSelection = (
+    newSelected: string[]
+  ) => {
+    if (!isControlled) {
+      setInternalSelected(newSelected);
+    }
+
     onChange?.(newSelected);
   };
 
   const toggleDropdown = () => {
-    if (!disabled) {
-      setIsOpen((prev) => !prev);
-      setFocusedIndex(-1);
+    if (disabled) {
+      return;
     }
+
+    setIsOpen((prev) => !prev);
+    setFocusedIndex(-1);
   };
 
-  const handleSelect = (optionValue: string) => {
-    const newSelected = selectedOptions.includes(optionValue)
-      ? selectedOptions.filter((v) => v !== optionValue)
-      : [...selectedOptions, optionValue];
+  const handleSelect = (
+    optionValue: string
+  ) => {
+    if (disabled) {
+      return;
+    }
+
+    const isAlreadySelected =
+      selectedOptions.includes(optionValue);
+
+    /*
+     * MODO SELECCIÓN ÚNICA
+     */
+    if (singleSelect) {
+      if (isAlreadySelected) {
+        /*
+         * Si no se permite vacío,
+         * mantener la selección actual.
+         */
+        if (!allowEmpty) {
+          setIsOpen(false);
+          return;
+        }
+
+        updateSelection([]);
+        setIsOpen(false);
+        return;
+      }
+
+      /*
+       * Sustituye la opción anterior
+       * por la nueva.
+       */
+      updateSelection([optionValue]);
+
+      /*
+       * En un select simple resulta más natural
+       * cerrar el menú después de elegir.
+       */
+      setIsOpen(false);
+
+      return;
+    }
+
+    /*
+     * MODO MULTISELECT NORMAL
+     */
+    const newSelected = isAlreadySelected
+      ? selectedOptions.filter(
+        (value) =>
+          value !== optionValue
+      )
+      : [
+        ...selectedOptions,
+        optionValue,
+      ];
+
+    /*
+     * Evitar vacío si allowEmpty = false.
+     */
+    if (
+      !allowEmpty &&
+      newSelected.length === 0
+    ) {
+      return;
+    }
+
     updateSelection(newSelected);
   };
 
-  const removeOption = (optionValue: string) => {
-    updateSelection(selectedOptions.filter((v) => v !== optionValue));
+  const removeOption = (
+    optionValue: string
+  ) => {
+    if (disabled) {
+      return;
+    }
+
+    const newSelected =
+      selectedOptions.filter(
+        (value) =>
+          value !== optionValue
+      );
+
+    if (
+      !allowEmpty &&
+      newSelected.length === 0
+    ) {
+      return;
+    }
+
+    updateSelection(newSelected);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (disabled) return;
+  const handleKeyDown = (
+    event: React.KeyboardEvent
+  ) => {
+    if (disabled) {
+      return;
+    }
 
-    e.preventDefault();
-    switch (e.key) {
+    switch (event.key) {
       case "Enter":
+        event.preventDefault();
+
         if (!isOpen) {
           setIsOpen(true);
-        } else if (focusedIndex >= 0) {
-          handleSelect(options[focusedIndex].value);
+        } else if (
+          focusedIndex >= 0
+        ) {
+          handleSelect(
+            options[focusedIndex].value
+          );
         }
+
         break;
+
       case "Escape":
+        event.preventDefault();
         setIsOpen(false);
         break;
+
       case "ArrowDown":
+        event.preventDefault();
+
         if (!isOpen) {
           setIsOpen(true);
         } else {
-          setFocusedIndex((prev) => (prev < options.length - 1 ? prev + 1 : 0));
+          setFocusedIndex((prev) =>
+            prev <
+              options.length - 1
+              ? prev + 1
+              : 0
+          );
         }
+
         break;
+
       case "ArrowUp":
+        event.preventDefault();
+
         if (isOpen) {
-          setFocusedIndex((prev) => (prev > 0 ? prev - 1 : options.length - 1));
+          setFocusedIndex((prev) =>
+            prev > 0
+              ? prev - 1
+              : options.length - 1
+          );
         }
+
         break;
     }
   };
 
   return (
-    <div className="w-full" ref={dropdownRef}>
+    <div
+      className="w-full"
+      ref={dropdownRef}
+    >
       <label
         className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"
         id={`${label}-label`}
@@ -127,70 +279,99 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
             tabIndex={disabled ? -1 : 0}
           >
             <div
-              className={`mb-2 flex min-h-11 rounded-lg border border-gray-300 px-3 py-1.5 shadow-theme-xs outline-hidden transition focus:border-brand-300 focus:shadow-focus-ring dark:border-gray-700 dark:bg-gray-900 dark:focus:border-brand-300 ${
-                disabled
+              className={`mb-2 flex min-h-11 rounded-lg border border-gray-300 px-3 py-1.5 shadow-theme-xs outline-hidden transition focus:border-brand-300 focus:shadow-focus-ring dark:border-gray-700 dark:bg-gray-900 dark:focus:border-brand-300 ${disabled
                   ? "cursor-not-allowed bg-gray-50 opacity-50 dark:bg-gray-800"
                   : "cursor-pointer"
-              }`}
+                }`}
             >
               <div className="flex flex-auto flex-wrap gap-2">
-                {selectedOptions.length > 0 ? (
-                  selectedOptions.map((value) => {
-                    const text =
-                      options.find((opt) => opt.value === value)?.text || value;
-                    return (
-                      <div
-                        key={value}
-                        className="group flex items-center justify-center rounded-full border-[0.7px] border-transparent bg-gray-100 py-1 ps-2.5 pe-2 text-sm text-gray-800 hover:border-gray-200 dark:bg-gray-800 dark:text-white/90 dark:hover:border-gray-800"
-                      >
-                        <span className="max-w-full flex-initial">{text}</span>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (!disabled) removeOption(value);
-                          }}
-                          disabled={disabled}
-                          className="cursor-pointer ps-2 text-gray-500 group-hover:text-gray-400 disabled:cursor-not-allowed dark:text-gray-400"
-                          aria-label={`Remove ${text}`}
+                {selectedOptions.length >
+                  0 ? (
+                  selectedOptions.map(
+                    (selectedValue) => {
+                      const text =
+                        options.find(
+                          (option) =>
+                            option.value ===
+                            selectedValue
+                        )?.text ??
+                        selectedValue;
+
+                      return (
+                        <div
+                          key={
+                            selectedValue
+                          }
+                          className="group flex items-center justify-center rounded-full border-[0.7px] border-transparent bg-gray-100 py-1 ps-2.5 pe-2 text-sm text-gray-800 hover:border-gray-200 dark:bg-gray-800 dark:text-white/90 dark:hover:border-gray-800"
                         >
-                          <svg
-                            className="fill-current"
-                            width="14"
-                            height="14"
-                            viewBox="0 0 14 14"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              fillRule="evenodd"
-                              clipRule="evenodd"
-                              d="M3.40717 4.46881C3.11428 4.17591 3.11428 3.70104 3.40717 3.40815C3.70006 3.11525 4.17494 3.11525 4.46783 3.40815L6.99943 5.93975L9.53095 3.40822C9.82385 3.11533 10.2987 3.11533 10.5916 3.40822C10.8845 3.70112 10.8845 4.17599 10.5916 4.46888L8.06009 7.00041L10.5916 9.53193C10.8845 9.82482 10.8845 10.2997 10.5916 10.5926C10.2987 10.8855 9.82385 10.8855 9.53095 10.5926L6.99943 8.06107L4.46783 10.5927C4.17494 10.8856 3.70006 10.8856 3.40717 10.5927C3.11428 10.2998 3.11428 9.8249 3.40717 9.53201L5.93877 7.00041L3.40717 4.46881Z"
-                            />
-                          </svg>
-                        </button>
-                      </div>
-                    );
-                  })
+                          <span className="max-w-full flex-initial">
+                            {text}
+                          </span>
+
+                          {allowEmpty && (
+                            <button
+                              type="button"
+                              onClick={(
+                                event
+                              ) => {
+                                event.stopPropagation();
+
+                                if (
+                                  !disabled
+                                ) {
+                                  removeOption(
+                                    selectedValue
+                                  );
+                                }
+                              }}
+                              disabled={
+                                disabled
+                              }
+                              className="cursor-pointer ps-2 text-gray-500 group-hover:text-gray-400 disabled:cursor-not-allowed dark:text-gray-400"
+                              aria-label={`Remove ${text}`}
+                            >
+                              <svg
+                                className="fill-current"
+                                width="14"
+                                height="14"
+                                viewBox="0 0 14 14"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path
+                                  fillRule="evenodd"
+                                  clipRule="evenodd"
+                                  d="M3.40717 4.46881C3.11428 4.17591 3.11428 3.70104 3.40717 3.40815C3.70006 3.11525 4.17494 3.11525 4.46783 3.40815L6.99943 5.93975L9.53095 3.40822C9.82385 3.11533 10.2987 3.11533 10.5916 3.40822C10.8845 3.70112 10.8845 4.17599 10.5916 4.46888L8.06009 7.00041L10.5916 9.53193C10.8845 9.82482 10.8845 10.2997 10.5916 10.5926C10.2987 10.8855 9.82385 10.8855 9.53095 10.5926L6.99943 8.06107L4.46783 10.5927C4.17494 10.8856 3.70006 10.8856 3.40717 10.5927C3.11428 10.2998 3.11428 9.8249 3.40717 9.53201L5.93877 7.00041L3.40717 4.46881Z"
+                                />
+                              </svg>
+                            </button>
+                          )}
+                        </div>
+                      );
+                    }
+                  )
                 ) : (
                   <div className="pointer-events-none h-full w-full p-1 pe-2 text-sm text-gray-400 dark:text-gray-500">
                     {placeholder}
                   </div>
                 )}
               </div>
+
               <div className="flex w-7 items-center self-start px-1 py-1">
                 <button
                   type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
+                  onClick={(event) => {
+                    event.stopPropagation();
                     toggleDropdown();
                   }}
                   disabled={disabled}
                   className="h-5 w-5 cursor-pointer text-gray-700 outline-hidden focus:outline-hidden disabled:cursor-not-allowed dark:text-gray-400"
+                  aria-label="Abrir opciones"
                 >
                   <svg
-                    className={`stroke-current transition-transform ${
-                      isOpen ? "rotate-180" : ""
-                    }`}
+                    className={`stroke-current transition-transform ${isOpen
+                        ? "rotate-180"
+                        : ""
+                      }`}
                     width="20"
                     height="20"
                     viewBox="0 0 20 20"
@@ -213,32 +394,79 @@ const MultiSelect: React.FC<MultiSelectProps> = ({
           {isOpen && (
             <div
               className="max-h-select inset-s-0 absolute top-full z-40 w-full overflow-y-auto rounded-lg bg-white shadow-sm dark:bg-gray-900"
-              onClick={(e) => e.stopPropagation()}
+              onClick={(event) =>
+                event.stopPropagation()
+              }
               role="listbox"
               aria-label={label}
+              aria-multiselectable={
+                !singleSelect
+              }
             >
-              {options.map((option, index) => {
-                const isSelected = selectedOptions.includes(option.value);
-                const isFocused = index === focusedIndex;
+              {options.map(
+                (option, index) => {
+                  const isSelected =
+                    selectedOptions.includes(
+                      option.value
+                    );
 
-                return (
-                  <div
-                    key={option.value}
-                    className={`hover:bg-primary/5 w-full cursor-pointer rounded-t border-b border-gray-200 dark:border-gray-800 ${
-                      isFocused ? "bg-primary/5" : ""
-                    } ${isSelected ? "bg-primary/10" : ""}`}
-                    onClick={() => handleSelect(option.value)}
-                    role="option"
-                    aria-selected={isSelected}
-                  >
-                    <div className="relative flex w-full items-center p-2">
-                      <div className="mx-2 leading-6 text-gray-800 dark:text-white/90">
-                        {option.text}
+                  const isFocused =
+                    index ===
+                    focusedIndex;
+
+                  return (
+                    <div
+                      key={
+                        option.value
+                      }
+                      className={`w-full cursor-pointer border-b border-gray-200 transition last:border-b-0 hover:bg-brand-50 dark:border-gray-800 dark:hover:bg-white/5 ${isFocused
+                          ? "bg-brand-50 dark:bg-white/5"
+                          : ""
+                        } ${isSelected
+                          ? "bg-brand-50/70 font-medium text-brand-600 dark:bg-brand-500/10 dark:text-brand-400"
+                          : ""
+                        }`}
+                      onClick={() =>
+                        handleSelect(
+                          option.value
+                        )
+                      }
+                      role="option"
+                      aria-selected={
+                        isSelected
+                      }
+                    >
+                      <div className="relative flex w-full items-center justify-between p-2">
+                        <div className="mx-2 leading-6 text-gray-800 dark:text-white/90">
+                          {
+                            option.text
+                          }
+                        </div>
+
+                        {isSelected && (
+                          <div className="me-2 flex size-5 items-center justify-center rounded-full bg-brand-500 text-white">
+                            <svg
+                              width="12"
+                              height="12"
+                              viewBox="0 0 12 12"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M2.5 6L4.8 8.3L9.5 3.7"
+                                stroke="currentColor"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                }
+              )}
             </div>
           )}
         </div>

@@ -82,13 +82,6 @@ export default function ProjectsView() {
 
                                 <TableCell
                                     isHeader
-                                    className="px-5 py-3 text-start text-theme-xs font-medium text-gray-500 dark:text-gray-400"
-                                >
-                                    Tipo
-                                </TableCell>
-
-                                <TableCell
-                                    isHeader
                                     className="px-5 py-3 text-end text-theme-xs font-medium text-gray-500 dark:text-gray-400"
                                 >
                                     Acciones
@@ -159,10 +152,6 @@ export default function ProjectsView() {
 
                                             <TableCell className="px-4 py-3 text-start text-theme-sm text-gray-500 dark:text-gray-400">
                                                 {project.year}
-                                            </TableCell>
-
-                                            <TableCell className="px-4 py-3 text-start text-theme-sm text-gray-500 dark:text-gray-400">
-                                                {project.type_project_id}
                                             </TableCell>
 
                                             <TableCell className="px-4 py-3 text-end">
