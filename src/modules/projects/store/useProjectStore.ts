@@ -5,6 +5,7 @@ import {
   deleteProjectPhoto,
   getProjectById,
   getProjects,
+  getProjectTypes,
   updateProject,
 } from "../services/project.service";
 
@@ -12,6 +13,7 @@ import type {
   Project,
   ProjectPagination,
   ProjectPayload,
+  ProjectType,
 } from "../types/project.types";
 
 interface ProjectState {
@@ -19,16 +21,24 @@ interface ProjectState {
   pagination: ProjectPagination | null;
   currentProject: Project | null;
 
+  projectTypes: ProjectType[];
+
   isLoading: boolean;
   isLoadingProject: boolean;
+  isLoadingProjectTypes: boolean;
   isSaving: boolean;
+
   deletingPhotoId: number | null;
 
-  fetchProjects: (page?: number) => Promise<void>;
+  fetchProjects: (
+    page?: number
+  ) => Promise<void>;
 
   fetchProject: (
     projectId: number
   ) => Promise<void>;
+
+  fetchProjectTypes: () => Promise<void>;
 
   createProject: (
     payload: ProjectPayload
@@ -47,125 +57,173 @@ interface ProjectState {
   clearCurrentProject: () => void;
 }
 
-export const useProjectStore = create<ProjectState>(
-  (set, get) => ({
-    projects: [],
-    pagination: null,
-    currentProject: null,
+export const useProjectStore =
+  create<ProjectState>(
+    (set, get) => ({
+      projects: [],
+      pagination: null,
+      currentProject: null,
 
-    isLoading: false,
-    isLoadingProject: false,
-    isSaving: false,
-    deletingPhotoId: null,
+      projectTypes: [],
 
-    fetchProjects: async (page = 1) => {
-      set({
-        isLoading: true,
-      });
+      isLoading: false,
+      isLoadingProject: false,
+      isLoadingProjectTypes: false,
+      isSaving: false,
 
-      try {
-        const response = await getProjects(page);
+      deletingPhotoId: null,
 
+      fetchProjects: async (
+        page = 1
+      ) => {
         set({
-          projects: response.data.data,
-          pagination: response.data,
+          isLoading: true,
         });
-      } finally {
+
+        try {
+          const response =
+            await getProjects(page);
+
+          set({
+            projects:
+              response.data.data,
+
+            pagination:
+              response.data,
+          });
+        } finally {
+          set({
+            isLoading: false,
+          });
+        }
+      },
+
+      fetchProject: async (
+        projectId
+      ) => {
         set({
-          isLoading: false,
+          isLoadingProject: true,
         });
-      }
-    },
 
-    fetchProject: async (projectId) => {
-      set({
-        isLoadingProject: true,
-      });
+        try {
+          const response =
+            await getProjectById(
+              projectId
+            );
 
-      try {
-        const response =
-          await getProjectById(projectId);
+          set({
+            currentProject:
+              response.data,
+          });
+        } finally {
+          set({
+            isLoadingProject: false,
+          });
+        }
+      },
 
+      fetchProjectTypes:
+        async () => {
+          set({
+            isLoadingProjectTypes:
+              true,
+          });
+
+          try {
+            const response =
+              await getProjectTypes();
+
+            set({
+              projectTypes:
+                response.data,
+            });
+          } finally {
+            set({
+              isLoadingProjectTypes:
+                false,
+            });
+          }
+        },
+
+      createProject: async (
+        payload
+      ) => {
         set({
-          currentProject: response.data,
+          isSaving: true,
         });
-      } finally {
+
+        try {
+          const response =
+            await createProject(
+              payload
+            );
+
+          return response.data;
+        } finally {
+          set({
+            isSaving: false,
+          });
+        }
+      },
+
+      updateProject: async (
+        projectId,
+        payload
+      ) => {
         set({
-          isLoadingProject: false,
+          isSaving: true,
         });
-      }
-    },
 
-    createProject: async (payload) => {
-      set({
-        isSaving: true,
-      });
+        try {
+          const response =
+            await updateProject(
+              projectId,
+              payload
+            );
 
-      try {
-        const response =
-          await createProject(payload);
+          set({
+            currentProject:
+              response.data,
+          });
 
-        return response.data;
-      } finally {
+          return response.data;
+        } finally {
+          set({
+            isSaving: false,
+          });
+        }
+      },
+
+      deletePhoto: async (
+        projectId,
+        photoId
+      ) => {
         set({
-          isSaving: false,
+          deletingPhotoId:
+            photoId,
         });
-      }
-    },
 
-    updateProject: async (
-      projectId,
-      payload
-    ) => {
-      set({
-        isSaving: true,
-      });
-
-      try {
-        const response =
-          await updateProject(
+        try {
+          await deleteProjectPhoto(
             projectId,
-            payload
+            photoId
           );
 
+          await get().fetchProject(
+            projectId
+          );
+        } finally {
+          set({
+            deletingPhotoId:
+              null,
+          });
+        }
+      },
+
+      clearCurrentProject: () => {
         set({
-          currentProject: response.data,
+          currentProject: null,
         });
-
-        return response.data;
-      } finally {
-        set({
-          isSaving: false,
-        });
-      }
-    },
-
-    deletePhoto: async (
-      projectId,
-      photoId
-    ) => {
-      set({
-        deletingPhotoId: photoId,
-      });
-
-      try {
-        await deleteProjectPhoto(
-          projectId,
-          photoId
-        );
-
-        await get().fetchProject(projectId);
-      } finally {
-        set({
-          deletingPhotoId: null,
-        });
-      }
-    },
-
-    clearCurrentProject: () => {
-      set({
-        currentProject: null,
-      });
-    },
-  })
-);
+      },
+    })
+  );

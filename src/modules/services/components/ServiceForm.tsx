@@ -1,20 +1,36 @@
 "use client";
 
+import {
+    FormEvent,
+    useEffect,
+    useState,
+} from "react";
+
+import Image from "next/image";
+
 import Form from "@/components/form/Form";
 import DropZone from "@/components/form/form-elements/DropZone";
 import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
 import Button from "@/components/ui/button/Button";
-import Image from "next/image";
 
-import { Link, useRouter } from "@/i18n/navigation";
+import {
+    Link,
+    useRouter,
+} from "@/i18n/navigation";
 
-import { handleApiError } from "@/utils/api-error";
-import { showError, showSuccess } from "@/utils/toast";
+import {
+    handleApiError,
+} from "@/utils/api-error";
 
-import { useServiceStore } from "../store/useServiceStore";
+import {
+    showError,
+    showSuccess,
+} from "@/utils/toast";
 
-import { FormEvent, useEffect, useState } from "react";
+import {
+    useServiceStore,
+} from "../store/useServiceStore";
 
 interface ServiceFormProps {
     mode: "create" | "edit";
@@ -25,51 +41,87 @@ export default function ServiceForm({
     mode,
     serviceId,
 }: ServiceFormProps) {
-    const router = useRouter();
+    const router =
+        useRouter();
 
-    const currentService = useServiceStore(
-        (state) => state.currentService
+    const currentService =
+        useServiceStore(
+            (state) =>
+                state.currentService
+        );
+
+    const isSaving =
+        useServiceStore(
+            (state) =>
+                state.isSaving
+        );
+
+    const isLoadingService =
+        useServiceStore(
+            (state) =>
+                state.isLoadingService
+        );
+
+    const createService =
+        useServiceStore(
+            (state) =>
+                state.createService
+        );
+
+    const updateService =
+        useServiceStore(
+            (state) =>
+                state.updateService
+        );
+
+    const fetchService =
+        useServiceStore(
+            (state) =>
+                state.fetchService
+        );
+
+    const clearCurrentService =
+        useServiceStore(
+            (state) =>
+                state.clearCurrentService
+        );
+
+    const [
+        title,
+        setTitle,
+    ] = useState("");
+
+    const [
+        description,
+        setDescription,
+    ] = useState("");
+
+    const [
+        image,
+        setImage,
+    ] = useState<File | null>(
+        null
     );
 
-    const isSaving = useServiceStore(
-        (state) => state.isSaving
-    );
+    const isEditMode =
+        mode === "edit";
 
-    const isLoadingService = useServiceStore(
-        (state) => state.isLoadingService
-    );
+    const resetForm = () => {
+        setTitle("");
+        setDescription("");
+        setImage(null);
 
-    const createService = useServiceStore(
-        (state) => state.createService
-    );
+        clearCurrentService();
+    };
 
-    const updateService = useServiceStore(
-        (state) => state.updateService
-    );
-
-    const fetchService = useServiceStore(
-        (state) => state.fetchService
-    );
-
-    const clearCurrentService = useServiceStore(
-        (state) => state.clearCurrentService
-    );
-
-    const [title, setTitle] = useState("");
-    const [description, setDescription] =
-        useState("");
-
-    const [image, setImage] =
-        useState<File | null>(null);
-
-    const isEditMode = mode === "edit";
-
-    /*
-     * Cargar servicio al editar.
-     */
     useEffect(() => {
         if (!isEditMode) {
             clearCurrentService();
+
+            setTitle("");
+            setDescription("");
+            setImage(null);
+
             return;
         }
 
@@ -77,7 +129,9 @@ export default function ServiceForm({
             return;
         }
 
-        fetchService(serviceId).catch((error) => {
+        fetchService(
+            serviceId
+        ).catch((error) => {
             handleApiError(error);
         });
 
@@ -91,11 +145,11 @@ export default function ServiceForm({
         clearCurrentService,
     ]);
 
-    /*
-     * Completar campos al editar.
-     */
     useEffect(() => {
-        if (!isEditMode || !currentService) {
+        if (
+            !isEditMode ||
+            !currentService
+        ) {
             return;
         }
 
@@ -104,8 +158,11 @@ export default function ServiceForm({
         );
 
         setDescription(
-            currentService.description ?? ""
+            currentService.description ??
+            ""
         );
+
+        setImage(null);
     }, [
         isEditMode,
         currentService,
@@ -130,10 +187,6 @@ export default function ServiceForm({
             return;
         }
 
-        /*
-         * Al crear sí exigimos imagen.
-         * En editar puede mantenerse la actual.
-         */
         if (!isEditMode && !image) {
             showError(
                 "Selecciona una imagen para el servicio."
@@ -142,9 +195,12 @@ export default function ServiceForm({
         }
 
         const payload = {
-            title: title.trim(),
+            title:
+                title.trim(),
+
             description:
                 description.trim(),
+
             image,
         };
 
@@ -175,9 +231,12 @@ export default function ServiceForm({
                 );
             }
 
-            setImage(null);
+            resetForm();
 
-            router.replace("/services");
+            router.replace(
+                "/services"
+            );
+
             router.refresh();
         } catch (error) {
             handleApiError(error);
@@ -222,7 +281,11 @@ export default function ServiceForm({
                 </Link>
             </div>
 
-            <Form onSubmit={handleSubmit}>
+            <Form
+                onSubmit={
+                    handleSubmit
+                }
+            >
                 <div className="space-y-6">
                     {/* DATOS */}
                     <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900 sm:p-6">
@@ -237,6 +300,7 @@ export default function ServiceForm({
                         </div>
 
                         <div className="space-y-6">
+                            {/* TÍTULO */}
                             <div>
                                 <Label>
                                     Título
@@ -249,16 +313,25 @@ export default function ServiceForm({
                                 <Input
                                     type="text"
                                     placeholder="Ej. Servicio de instalación"
-                                    value={title}
-                                    onChange={(event) =>
+                                    value={
+                                        title
+                                    }
+                                    onChange={(
+                                        event
+                                    ) =>
                                         setTitle(
-                                            event.target.value
+                                            event
+                                                .target
+                                                .value
                                         )
                                     }
-                                    disabled={isSaving}
+                                    disabled={
+                                        isSaving
+                                    }
                                 />
                             </div>
 
+                            {/* DESCRIPCIÓN */}
                             <div>
                                 <Label>
                                     Descripción
@@ -270,13 +343,21 @@ export default function ServiceForm({
 
                                 <textarea
                                     rows={5}
-                                    value={description}
-                                    onChange={(event) =>
+                                    value={
+                                        description
+                                    }
+                                    onChange={(
+                                        event
+                                    ) =>
                                         setDescription(
-                                            event.target.value
+                                            event
+                                                .target
+                                                .value
                                         )
                                     }
-                                    disabled={isSaving}
+                                    disabled={
+                                        isSaving
+                                    }
                                     placeholder="Describe el servicio ofrecido..."
                                     className="w-full resize-none rounded-lg border border-gray-300 bg-transparent px-4 py-3 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-brand-500 focus:ring-3 focus:ring-brand-500/10 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-500"
                                 />
@@ -339,15 +420,22 @@ export default function ServiceForm({
                                     : "Imagen del servicio"
                             }
                             value={
-                                image ? [image] : []
+                                image
+                                    ? [image]
+                                    : []
                             }
-                            onChange={(files) => {
+                            onChange={(
+                                files
+                            ) => {
                                 setImage(
-                                    files[0] ?? null
+                                    files[0] ??
+                                    null
                                 );
                             }}
                             maxFiles={1}
-                            disabled={isSaving}
+                            disabled={
+                                isSaving
+                            }
                         />
                     </div>
 
@@ -363,7 +451,9 @@ export default function ServiceForm({
                         <Button
                             type="submit"
                             size="sm"
-                            disabled={isSaving}
+                            disabled={
+                                isSaving
+                            }
                             className="min-w-40"
                         >
                             {isSaving

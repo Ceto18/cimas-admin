@@ -1,6 +1,7 @@
 import api from "@/lib/api/api";
 
 import type {
+  CompanyPayload,
   CompanyResponse,
 } from "../types/company.types";
 
@@ -12,6 +13,19 @@ export async function getCompany(
   const { data } =
     await api.get<CompanyResponse>(
       `${COMPANY_ENDPOINT}/${companyId}`
+    );
+
+  return data;
+}
+
+export async function updateCompany(
+  companyId: number,
+  payload: CompanyPayload
+): Promise<CompanyResponse> {
+  const { data } =
+    await api.post<CompanyResponse>(
+      `${COMPANY_ENDPOINT}/${companyId}`,
+      payload
     );
 
   return data;

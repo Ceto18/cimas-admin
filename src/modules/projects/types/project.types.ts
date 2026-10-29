@@ -4,6 +4,12 @@ export interface ProjectType {
   name: string;
 }
 
+export interface ProjectTypesResponse {
+  success: boolean;
+  message: string;
+  data: ProjectType[];
+}
+
 export interface ProjectPhoto {
   id: number;
   uuid: string;

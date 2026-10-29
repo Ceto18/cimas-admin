@@ -1,6 +1,11 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import {
+    FormEvent,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
 
 import Form from "@/components/form/Form";
 import Input from "@/components/form/input/InputField";
@@ -83,12 +88,42 @@ export default function CertificationForm({
     const [file, setFile] =
         useState<File | null>(null);
 
+    const fileInputRef =
+        useRef<HTMLInputElement | null>(
+            null
+        );
+
     const isEditMode =
         mode === "edit";
+
+    const resetForm = () => {
+        setName("");
+        setArea("");
+        setDescription("");
+        setFile(null);
+
+        if (fileInputRef.current) {
+            fileInputRef.current.value =
+                "";
+        }
+
+        clearCurrentCertification();
+    };
 
     useEffect(() => {
         if (!isEditMode) {
             clearCurrentCertification();
+
+            setName("");
+            setArea("");
+            setDescription("");
+            setFile(null);
+
+            if (fileInputRef.current) {
+                fileInputRef.current.value =
+                    "";
+            }
+
             return;
         }
 
@@ -132,6 +167,13 @@ export default function CertificationForm({
             currentCertification.description ??
             ""
         );
+
+        setFile(null);
+
+        if (fileInputRef.current) {
+            fileInputRef.current.value =
+                "";
+        }
     }, [
         isEditMode,
         currentCertification,
@@ -157,6 +199,7 @@ export default function CertificationForm({
             );
 
             event.target.value = "";
+
             setFile(null);
 
             return;
@@ -212,6 +255,7 @@ export default function CertificationForm({
                     showError(
                         "No se encontró la certificación."
                     );
+
                     return;
                 }
 
@@ -233,7 +277,7 @@ export default function CertificationForm({
                 );
             }
 
-            setFile(null);
+            resetForm();
 
             router.replace(
                 "/certifications"
@@ -259,7 +303,6 @@ export default function CertificationForm({
 
     return (
         <div className="space-y-6">
-            {/* CABECERA */}
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
@@ -287,7 +330,6 @@ export default function CertificationForm({
                 onSubmit={handleSubmit}
             >
                 <div className="space-y-6">
-                    {/* INFORMACIÓN */}
                     <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900 sm:p-6">
                         <div className="mb-6">
                             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -300,7 +342,6 @@ export default function CertificationForm({
                         </div>
 
                         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                            {/* NOMBRE */}
                             <div>
                                 <Label>
                                     Nombre
@@ -314,16 +355,21 @@ export default function CertificationForm({
                                     type="text"
                                     placeholder="Ej. ISO 9001:2015"
                                     value={name}
-                                    onChange={(event) =>
+                                    onChange={(
+                                        event
+                                    ) =>
                                         setName(
-                                            event.target.value
+                                            event
+                                                .target
+                                                .value
                                         )
                                     }
-                                    disabled={isSaving}
+                                    disabled={
+                                        isSaving
+                                    }
                                 />
                             </div>
 
-                            {/* ÁREA */}
                             <div>
                                 <Label>
                                     Área
@@ -337,16 +383,21 @@ export default function CertificationForm({
                                     type="text"
                                     placeholder="Ej. Calidad"
                                     value={area}
-                                    onChange={(event) =>
+                                    onChange={(
+                                        event
+                                    ) =>
                                         setArea(
-                                            event.target.value
+                                            event
+                                                .target
+                                                .value
                                         )
                                     }
-                                    disabled={isSaving}
+                                    disabled={
+                                        isSaving
+                                    }
                                 />
                             </div>
 
-                            {/* DESCRIPCIÓN */}
                             <div className="md:col-span-2">
                                 <Label>
                                     Descripción
@@ -358,13 +409,21 @@ export default function CertificationForm({
 
                                 <textarea
                                     rows={5}
-                                    value={description}
-                                    onChange={(event) =>
+                                    value={
+                                        description
+                                    }
+                                    onChange={(
+                                        event
+                                    ) =>
                                         setDescription(
-                                            event.target.value
+                                            event
+                                                .target
+                                                .value
                                         )
                                     }
-                                    disabled={isSaving}
+                                    disabled={
+                                        isSaving
+                                    }
                                     placeholder="Describe brevemente la certificación..."
                                     className="w-full resize-none rounded-lg border border-gray-300 bg-transparent px-4 py-3 text-sm text-gray-800 outline-none transition placeholder:text-gray-400 focus:border-brand-500 focus:ring-3 focus:ring-brand-500/10 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:bg-gray-900 dark:text-white dark:placeholder:text-gray-500"
                                 />
@@ -372,7 +431,6 @@ export default function CertificationForm({
                         </div>
                     </div>
 
-                    {/* ARCHIVO */}
                     <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900 sm:p-6">
                         <div className="mb-6">
                             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -384,7 +442,6 @@ export default function CertificationForm({
                             </p>
                         </div>
 
-                        {/* ARCHIVO ACTUAL */}
                         {isEditMode &&
                             currentCertification?.file_url &&
                             !file && (
@@ -406,8 +463,7 @@ export default function CertificationForm({
 
                                     <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                                         Si seleccionas otro PDF,
-                                        reemplazará al documento
-                                        actual.
+                                        reemplazará al documento actual.
                                     </p>
                                 </div>
                             )}
@@ -427,9 +483,14 @@ export default function CertificationForm({
                             </Label>
 
                             <input
+                                ref={
+                                    fileInputRef
+                                }
                                 type="file"
                                 accept="application/pdf,.pdf"
-                                disabled={isSaving}
+                                disabled={
+                                    isSaving
+                                }
                                 onChange={
                                     handleFileChange
                                 }
@@ -439,7 +500,9 @@ export default function CertificationForm({
                             {file && (
                                 <div className="mt-3 rounded-lg bg-gray-50 px-4 py-3 dark:bg-gray-800">
                                     <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                        {file.name}
+                                        {
+                                            file.name
+                                        }
                                     </p>
 
                                     <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
@@ -447,7 +510,9 @@ export default function CertificationForm({
                                             file.size /
                                             1024 /
                                             1024
-                                        ).toFixed(2)}{" "}
+                                        ).toFixed(
+                                            2
+                                        )}{" "}
                                         MB
                                     </p>
                                 </div>
@@ -455,7 +520,6 @@ export default function CertificationForm({
                         </div>
                     </div>
 
-                    {/* ACCIONES */}
                     <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                         <Link
                             href="/certifications"
@@ -467,7 +531,9 @@ export default function CertificationForm({
                         <Button
                             type="submit"
                             size="sm"
-                            disabled={isSaving}
+                            disabled={
+                                isSaving
+                            }
                             className="min-w-44"
                         >
                             {isSaving

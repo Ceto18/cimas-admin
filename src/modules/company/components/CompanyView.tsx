@@ -5,6 +5,14 @@ import {
 } from "react";
 
 import {
+  Pencil,
+} from "lucide-react";
+
+import {
+  Link,
+} from "@/i18n/navigation";
+
+import {
   handleApiError,
 } from "@/utils/api-error";
 
@@ -70,15 +78,25 @@ export default function CompanyView() {
   return (
     <div className="space-y-6">
       {/* CABECERA */}
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
-          Empresa
-        </h1>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">
+            Empresa
+          </h1>
 
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Información institucional
-          registrada para CIMAS.
-        </p>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            Información institucional registrada para CIMAS.
+          </p>
+        </div>
+
+        <Link
+          href="/company/edit"
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-brand-500 px-4 text-sm font-medium text-white transition hover:bg-brand-600"
+        >
+          <Pencil size={16} />
+
+          Editar información
+        </Link>
       </div>
 
       {/* INFORMACIÓN GENERAL */}
@@ -116,26 +134,20 @@ export default function CompanyView() {
 
       {/* MISIÓN Y VISIÓN */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        {/* MISIÓN */}
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900 sm:p-6">
-          <div className="mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Misión
-            </h2>
-          </div>
+          <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+            Misión
+          </h2>
 
           <p className="whitespace-pre-line text-sm leading-7 text-gray-700 dark:text-gray-300">
             {company.mission}
           </p>
         </div>
 
-        {/* VISIÓN */}
         <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900 sm:p-6">
-          <div className="mb-4">
-            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Visión
-            </h2>
-          </div>
+          <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
+            Visión
+          </h2>
 
           <p className="whitespace-pre-line text-sm leading-7 text-gray-700 dark:text-gray-300">
             {company.vision}
@@ -151,13 +163,11 @@ export default function CompanyView() {
           </h2>
 
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-            Principios institucionales
-            de la empresa.
+            Principios institucionales de la empresa.
           </p>
         </div>
 
-        {orderedValues.length >
-        0 ? (
+        {orderedValues.length > 0 ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {orderedValues.map(
               (
@@ -165,18 +175,19 @@ export default function CompanyView() {
                 index
               ) => (
                 <div
-                  key={value.id}
+                  key={
+                    value.id ??
+                    `${value.name}-${index}`
+                  }
                   className="flex items-center gap-4 rounded-xl border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-800/50"
                 >
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-brand-50 text-sm font-semibold text-brand-500 dark:bg-brand-500/10 dark:text-brand-400">
                     {index + 1}
                   </div>
 
-                  <div>
-                    <p className="font-medium text-gray-800 dark:text-white/90">
-                      {value.name}
-                    </p>
-                  </div>
+                  <p className="font-medium text-gray-800 dark:text-white/90">
+                    {value.name}
+                  </p>
                 </div>
               )
             )}
