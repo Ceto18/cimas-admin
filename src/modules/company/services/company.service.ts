@@ -1,7 +1,6 @@
 import api from "@/lib/api/api";
 
 import type {
-  CompanyPayload,
   CompanyResponse,
 } from "../types/company.types";
 
@@ -10,23 +9,21 @@ const COMPANY_ENDPOINT = "admin/company";
 export async function getCompany(
   companyId = 1
 ): Promise<CompanyResponse> {
-  const { data } =
-    await api.get<CompanyResponse>(
-      `${COMPANY_ENDPOINT}/${companyId}`
-    );
+  const { data } = await api.get<CompanyResponse>(
+    `${COMPANY_ENDPOINT}/${companyId}`
+  );
 
   return data;
 }
 
 export async function updateCompany(
   companyId: number,
-  payload: CompanyPayload
+  payload: FormData
 ): Promise<CompanyResponse> {
-  const { data } =
-    await api.post<CompanyResponse>(
-      `${COMPANY_ENDPOINT}/${companyId}`,
-      payload
-    );
+  const { data } = await api.post<CompanyResponse>(
+    `${COMPANY_ENDPOINT}/${companyId}`,
+    payload
+  );
 
   return data;
 }

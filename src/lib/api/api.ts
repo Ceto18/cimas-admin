@@ -21,7 +21,7 @@ api.interceptors.request.use(
             config.headers.Authorization = `Bearer ${token}`;
           }
         } catch {
-          // Ignorar storage inválido
+          localStorage.removeItem("cimas-auth");
         }
       }
     }
@@ -29,6 +29,44 @@ api.interceptors.request.use(
     return config;
   },
   (error) => Promise.reject(error)
+);
+
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (
+      typeof window !== "undefined" &&
+      error.response?.status === 401
+    ) {
+      const authStorage = localStorage.getItem("cimas-auth");
+
+      const pathname = window.location.pathname;
+
+      const segments = pathname.split("/").filter(Boolean);
+
+      const supportedLocales = ["es", "en"];
+
+      const locale = supportedLocales.includes(segments[0])
+        ? segments[0]
+        : "es";
+
+      const loginPath = `/${locale}/login`;
+
+      const isLoginPage =
+        pathname === loginPath ||
+        pathname === `${loginPath}/`;
+
+      if (authStorage && !isLoginPage) {
+        localStorage.removeItem("cimas-auth");
+
+        window.location.replace(
+          `${loginPath}?expired=1`
+        );
+      }
+    }
+
+    return Promise.reject(error);
+  }
 );
 
 export default api;

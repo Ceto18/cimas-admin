@@ -7,7 +7,6 @@ import {
 
 import type {
   Company,
-  CompanyPayload,
 } from "../types/company.types";
 
 interface CompanyState {
@@ -22,7 +21,7 @@ interface CompanyState {
 
   updateCompany: (
     companyId: number,
-    payload: CompanyPayload
+    payload: FormData
   ) => Promise<void>;
 
   clearCompany: () => void;
@@ -44,13 +43,10 @@ export const useCompanyStore =
 
       try {
         const response =
-          await getCompany(
-            companyId
-          );
+          await getCompany(companyId);
 
         set({
-          company:
-            response.data,
+          company: response.data,
         });
       } finally {
         set({
@@ -75,8 +71,7 @@ export const useCompanyStore =
           );
 
         set({
-          company:
-            response.data,
+          company: response.data,
         });
       } finally {
         set({

@@ -20,10 +20,7 @@ export interface CompanyPayload {
   description: string;
   mission: string;
   vision: string;
-  values: {
-    name: string;
-    position: number;
-  }[];
+  values: string[];
 }
 
 export interface CompanyResponse {
