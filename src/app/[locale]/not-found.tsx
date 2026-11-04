@@ -11,6 +11,7 @@ export default function NotFound() {
   return (
     <div className="relative z-1 flex min-h-screen flex-col items-center justify-center overflow-hidden p-6">
       <GridShape />
+
       <div className="mx-auto w-full max-w-60.5 text-center sm:max-w-118">
         <h1 className="mb-8 text-title-md font-bold text-gray-800 xl:text-title-2xl dark:text-white/90">
           {t("error")}
@@ -23,6 +24,7 @@ export default function NotFound() {
           width={472}
           height={152}
         />
+
         <Image
           src="/images/error/404-dark.svg"
           alt="404"
@@ -42,9 +44,9 @@ export default function NotFound() {
           {t("backHome")}
         </Link>
       </div>
-      {/* <!-- Footer --> */}
+
       <p className="absolute bottom-6 left-1/2 -translate-x-1/2 text-center text-sm text-gray-500 dark:text-gray-400">
-        &copy; {new Date().getFullYear()} - TailAdmin
+        &copy; 2026 - CIMAS Ingenieros
       </p>
     </div>
   );
