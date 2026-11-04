@@ -29,8 +29,19 @@ const nextConfig: NextConfig = {
 
     remotePatterns: [
       {
+        protocol: "https",
+        hostname: "api.constructoracimas.com",
+        pathname: "/storage/**",
+      },
+      {
         protocol: "http",
         hostname: "209.145.55.109",
+        port: "8000",
+        pathname: "/storage/**",
+      },
+      {
+        protocol: "http",
+        hostname: "localhost",
         port: "8000",
         pathname: "/storage/**",
       },
