@@ -109,9 +109,9 @@ export default function UserDropdown() {
         </div>
 
         {/* OPCIONES */}
-        <ul className="mt-3 flex flex-col gap-1 border-t border-gray-200 pt-3 dark:border-gray-800">
+        {/* <ul className="mt-3 flex flex-col gap-1 border-t border-gray-200 pt-3 dark:border-gray-800">
           {/* IDIOMA */}
-          <li className="relative" ref={subDropdownRef}>
+          {/* <li className="relative" ref={subDropdownRef}>
             <button
               type="button"
               onClick={() =>
@@ -203,8 +203,8 @@ export default function UserDropdown() {
                 </ul>
               </div>
             )}
-          </li>
-        </ul>
+          </li> */}
+        {/* </ul> */}
 
         {/* CERRAR SESIÓN */}
         <button
