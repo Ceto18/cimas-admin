@@ -1,3 +1,4 @@
+
 import api from "@/lib/api/api";
 
 import type {
@@ -14,10 +15,9 @@ const SOCIAL_NETWORK_PROFILES_ENDPOINT =
   "admin/social-network-profiles";
 
 export async function getSocialNetworks(): Promise<SocialNetworksResponse> {
-  const { data } =
-    await api.get<SocialNetworksResponse>(
-      SOCIAL_NETWORKS_ENDPOINT
-    );
+  const { data } = await api.get<SocialNetworksResponse>(
+    SOCIAL_NETWORKS_ENDPOINT
+  );
 
   return data;
 }
@@ -25,26 +25,24 @@ export async function getSocialNetworks(): Promise<SocialNetworksResponse> {
 export async function getSocialNetworkProfiles(
   page = 1
 ): Promise<SocialNetworkProfilesResponse> {
-  const { data } =
-    await api.get<SocialNetworkProfilesResponse>(
-      SOCIAL_NETWORK_PROFILES_ENDPOINT,
-      {
-        params: {
-          page,
-        },
-      }
-    );
+  const { data } = await api.get<SocialNetworkProfilesResponse>(
+    SOCIAL_NETWORK_PROFILES_ENDPOINT,
+    {
+      params: {
+        page,
+      },
+    }
+  );
 
   return data;
 }
 
-export async function getSocialNetworkProfileById(
-  profileId: number
+export async function getSocialNetworkProfileByUuid(
+  profileUuid: string
 ): Promise<SocialNetworkProfileResponse> {
-  const { data } =
-    await api.get<SocialNetworkProfileResponse>(
-      `${SOCIAL_NETWORK_PROFILES_ENDPOINT}/${profileId}`
-    );
+  const { data } = await api.get<SocialNetworkProfileResponse>(
+    `${SOCIAL_NETWORK_PROFILES_ENDPOINT}/${profileUuid}`
+  );
 
   return data;
 }
@@ -52,32 +50,30 @@ export async function getSocialNetworkProfileById(
 export async function createSocialNetworkProfile(
   payload: SocialNetworkProfilePayload
 ): Promise<SocialNetworkProfileResponse> {
-  const { data } =
-    await api.post<SocialNetworkProfileResponse>(
-      SOCIAL_NETWORK_PROFILES_ENDPOINT,
-      payload
-    );
+  const { data } = await api.post<SocialNetworkProfileResponse>(
+    SOCIAL_NETWORK_PROFILES_ENDPOINT,
+    payload
+  );
 
   return data;
 }
 
 export async function updateSocialNetworkProfile(
-  profileId: number,
+  profileUuid: string,
   payload: SocialNetworkProfilePayload
 ): Promise<SocialNetworkProfileResponse> {
-  const { data } =
-    await api.post<SocialNetworkProfileResponse>(
-      `${SOCIAL_NETWORK_PROFILES_ENDPOINT}/${profileId}`,
-      payload
-    );
+  const { data } = await api.post<SocialNetworkProfileResponse>(
+    `${SOCIAL_NETWORK_PROFILES_ENDPOINT}/${profileUuid}`,
+    payload
+  );
 
   return data;
 }
 
 export async function deleteSocialNetworkProfile(
-  profileId: number
+  profileUuid: string
 ): Promise<void> {
   await api.delete(
-    `${SOCIAL_NETWORK_PROFILES_ENDPOINT}/${profileId}`
+    `${SOCIAL_NETWORK_PROFILES_ENDPOINT}/${profileUuid}`
   );
 }

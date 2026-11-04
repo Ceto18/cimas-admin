@@ -9,18 +9,13 @@ export interface SocialNetworksResponse {
   data: SocialNetwork[];
 }
 
-export interface SocialNetworkProfileNetwork {
-  uuid: string;
-  name: string;
-}
-
 export interface SocialNetworkProfile {
-  id?: number;
   uuid: string;
-  social_network_uuid?: string;
   nickname: string;
-  url: string;
-  social_network?: SocialNetworkProfileNetwork;
+  label: string | null;
+  url: string | null;
+  social_network_name: string;
+  social_network_uuid?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -28,7 +23,8 @@ export interface SocialNetworkProfile {
 export interface SocialNetworkProfilePayload {
   social_network_uuid: string;
   nickname: string;
-  url: string;
+  label?: string | null;
+  url?: string | null;
 }
 
 export interface SocialNetworkProfileResponse {

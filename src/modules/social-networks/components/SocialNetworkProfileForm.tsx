@@ -1,8 +1,10 @@
+
 "use client";
 
 import {
     FormEvent,
     useEffect,
+    useMemo,
     useState,
 } from "react";
 
@@ -17,151 +19,127 @@ import {
     useRouter,
 } from "@/i18n/navigation";
 
-import {
-    handleApiError,
-} from "@/utils/api-error";
+import { handleApiError } from "@/utils/api-error";
 
 import {
     showError,
     showSuccess,
 } from "@/utils/toast";
 
-import {
-    useSocialNetworkStore,
-} from "../store/useSocialNetworkStore";
+import { useSocialNetworkStore } from "../store/useSocialNetworkStore";
+
+import type {
+    SocialNetworkProfilePayload,
+} from "../types/social-network.types";
 
 interface SocialNetworkProfileFormProps {
     mode: "create" | "edit";
-    profileId?: number;
+    profileUuid?: string;
 }
 
 export default function SocialNetworkProfileForm({
     mode,
-    profileId,
+    profileUuid,
 }: SocialNetworkProfileFormProps) {
-    const router =
-        useRouter();
+    const router = useRouter();
 
-    const socialNetworks =
-        useSocialNetworkStore(
-            (state) =>
-                state.socialNetworks
-        );
+    const isEditMode = mode === "edit";
 
-    const currentProfile =
-        useSocialNetworkStore(
-            (state) =>
-                state.currentProfile
-        );
+    const socialNetworks = useSocialNetworkStore(
+        (state) => state.socialNetworks
+    );
 
-    const isLoadingNetworks =
-        useSocialNetworkStore(
-            (state) =>
-                state.isLoadingNetworks
-        );
+    const currentProfile = useSocialNetworkStore(
+        (state) => state.currentProfile
+    );
 
-    const isLoadingProfile =
-        useSocialNetworkStore(
-            (state) =>
-                state.isLoadingProfile
-        );
+    const isLoadingNetworks = useSocialNetworkStore(
+        (state) => state.isLoadingNetworks
+    );
 
-    const isSaving =
-        useSocialNetworkStore(
-            (state) =>
-                state.isSaving
-        );
+    const isLoadingProfile = useSocialNetworkStore(
+        (state) => state.isLoadingProfile
+    );
 
-    const fetchSocialNetworks =
-        useSocialNetworkStore(
-            (state) =>
-                state.fetchSocialNetworks
-        );
+    const isSaving = useSocialNetworkStore(
+        (state) => state.isSaving
+    );
 
-    const fetchProfile =
-        useSocialNetworkStore(
-            (state) =>
-                state.fetchProfile
-        );
+    const fetchSocialNetworks = useSocialNetworkStore(
+        (state) => state.fetchSocialNetworks
+    );
 
-    const createProfile =
-        useSocialNetworkStore(
-            (state) =>
-                state.createProfile
-        );
+    const fetchProfile = useSocialNetworkStore(
+        (state) => state.fetchProfile
+    );
 
-    const updateProfile =
-        useSocialNetworkStore(
-            (state) =>
-                state.updateProfile
-        );
+    const createProfile = useSocialNetworkStore(
+        (state) => state.createProfile
+    );
 
-    const clearCurrentProfile =
-        useSocialNetworkStore(
-            (state) =>
-                state.clearCurrentProfile
-        );
+    const updateProfile = useSocialNetworkStore(
+        (state) => state.updateProfile
+    );
+
+    const clearCurrentProfile = useSocialNetworkStore(
+        (state) => state.clearCurrentProfile
+    );
 
     const [
         socialNetworkUuid,
         setSocialNetworkUuid,
     ] = useState("");
 
-    const [
-        nickname,
-        setNickname,
-    ] = useState("");
+    const [nickname, setNickname] = useState("");
 
-    const [
-        url,
-        setUrl,
-    ] = useState("");
+    const [label, setLabel] = useState("");
 
-    const isEditMode =
-        mode === "edit";
+    const [url, setUrl] = useState("");
 
-    const networkOptions =
-        socialNetworks.map(
-            (network) => ({
-                value:
-                    network.uuid,
+    const networkOptions = socialNetworks.map(
+        (network) => ({
+            value: network.uuid,
+            label: network.name,
+        })
+    );
 
-                label:
-                    network.name,
-            })
-        );
+    const selectedNetwork = useMemo(
+        () =>
+            socialNetworks.find(
+                (network) => network.uuid === socialNetworkUuid
+            ),
+        [socialNetworks, socialNetworkUuid]
+    );
+
+    const selectedNetworkName =
+        selectedNetwork?.name.trim().toLowerCase() ?? "";
+
+    const isInformational = [
+        "ruc",
+        "dirección",
+        "direccion",
+    ].includes(selectedNetworkName);
 
     const resetForm = () => {
         setSocialNetworkUuid("");
         setNickname("");
+        setLabel("");
         setUrl("");
-
-        clearCurrentProfile();
     };
 
     useEffect(() => {
-        fetchSocialNetworks().catch(
-            (error) => {
-                handleApiError(error);
-            }
-        );
-    }, [
-        fetchSocialNetworks,
-    ]);
+        fetchSocialNetworks().catch((error) => {
+            handleApiError(error);
+        });
+    }, [fetchSocialNetworks]);
 
     useEffect(() => {
-        if (!isEditMode) {
-            resetForm();
+        if (!isEditMode || !profileUuid) {
+            clearCurrentProfile();
             return;
         }
 
-        if (!profileId) {
-            return;
-        }
-
-        fetchProfile(
-            profileId
-        ).catch((error) => {
+        fetchProfile(profileUuid).catch((error) => {
             handleApiError(error);
         });
 
@@ -170,40 +148,37 @@ export default function SocialNetworkProfileForm({
         };
     }, [
         isEditMode,
-        profileId,
+        profileUuid,
         fetchProfile,
         clearCurrentProfile,
     ]);
 
     useEffect(() => {
-        if (
-            !isEditMode ||
-            !currentProfile
-        ) {
+        if (!isEditMode || !currentProfile) {
             return;
         }
 
+        setNickname(currentProfile.nickname ?? "");
+        setLabel(currentProfile.label ?? "");
+        setUrl(currentProfile.url ?? "");
+
+        const matchedNetwork = socialNetworks.find(
+            (network) =>
+                network.name.trim().toLowerCase() ===
+                currentProfile.social_network_name
+                    .trim()
+                    .toLowerCase()
+        );
+
         setSocialNetworkUuid(
-            currentProfile
-                .social_network_uuid ??
-            currentProfile
-                .social_network
-                ?.uuid ??
-            ""
-        );
-
-        setNickname(
-            currentProfile.nickname ??
-            ""
-        );
-
-        setUrl(
-            currentProfile.url ??
+            currentProfile.social_network_uuid ??
+            matchedNetwork?.uuid ??
             ""
         );
     }, [
         isEditMode,
         currentProfile,
+        socialNetworks,
     ]);
 
     const handleSubmit = async (
@@ -212,62 +187,41 @@ export default function SocialNetworkProfileForm({
         event.preventDefault();
 
         if (!socialNetworkUuid) {
-            showError(
-                "Selecciona una red social."
-            );
-
+            showError("Selecciona una red social.");
             return;
         }
 
         if (!nickname.trim()) {
-            showError(
-                "El nombre es obligatorio."
-            );
-
+            showError("El nombre o valor es obligatorio.");
             return;
         }
 
-        if (!url.trim()) {
-            showError(
-                "El enlace o contacto es obligatorio."
-            );
-
+        if (!isInformational && !url.trim()) {
+            showError("El enlace o contacto es obligatorio.");
             return;
         }
 
-        const payload = {
-            social_network_uuid:
-                socialNetworkUuid,
-
-            nickname:
-                nickname.trim(),
-
-            url:
-                url.trim(),
+        const payload: SocialNetworkProfilePayload = {
+            social_network_uuid: socialNetworkUuid,
+            nickname: nickname.trim(),
+            label: label.trim() || null,
+            url: url.trim() || null,
         };
 
         try {
             if (isEditMode) {
-                if (!profileId) {
-                    showError(
-                        "No se encontró el perfil."
-                    );
-
+                if (!profileUuid) {
+                    showError("No se encontró el perfil.");
                     return;
                 }
 
-                await updateProfile(
-                    profileId,
-                    payload
-                );
+                await updateProfile(profileUuid, payload);
 
                 showSuccess(
                     "Red social actualizada correctamente."
                 );
             } else {
-                await createProfile(
-                    payload
-                );
+                await createProfile(payload);
 
                 showSuccess(
                     "Red social agregada correctamente."
@@ -276,10 +230,7 @@ export default function SocialNetworkProfileForm({
 
             resetForm();
 
-            router.replace(
-                "/social-networks"
-            );
-
+            router.replace("/social-networks");
             router.refresh();
         } catch (error) {
             handleApiError(error);
@@ -323,11 +274,7 @@ export default function SocialNetworkProfileForm({
                 </Link>
             </div>
 
-            <Form
-                onSubmit={
-                    handleSubmit
-                }
-            >
+            <Form onSubmit={handleSubmit}>
                 <div className="space-y-6">
                     <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-theme-xs dark:border-gray-800 dark:bg-gray-900 sm:p-6">
                         <div className="mb-6">
@@ -346,26 +293,19 @@ export default function SocialNetworkProfileForm({
                                     Red social
 
                                     <span className="text-error-500">
-                                        {" "}
-                                        *
+                                        {" "}*
                                     </span>
                                 </Label>
 
                                 <Select
-                                    options={
-                                        networkOptions
-                                    }
+                                    options={networkOptions}
                                     placeholder={
                                         isLoadingNetworks
                                             ? "Cargando..."
                                             : "Selecciona una red social"
                                     }
-                                    value={
-                                        socialNetworkUuid
-                                    }
-                                    onChange={
-                                        setSocialNetworkUuid
-                                    }
+                                    value={socialNetworkUuid}
+                                    onChange={setSocialNetworkUuid}
                                     disabled={
                                         isSaving ||
                                         isLoadingNetworks
@@ -375,64 +315,79 @@ export default function SocialNetworkProfileForm({
 
                             <div>
                                 <Label>
-                                    Nombre visible
+                                    Nombre / Valor
 
                                     <span className="text-error-500">
-                                        {" "}
-                                        *
+                                        {" "}*
                                     </span>
                                 </Label>
 
                                 <Input
                                     type="text"
-                                    placeholder="Ej. WhatsApp CIMAS"
-                                    value={
-                                        nickname
+                                    placeholder={
+                                        selectedNetworkName === "ruc"
+                                            ? "Ej. 20123456789"
+                                            : isInformational
+                                                ? "Ingresa la dirección"
+                                                : "Ej. WhatsApp CIMAS"
                                     }
-                                    onChange={(
-                                        event
-                                    ) =>
-                                        setNickname(
-                                            event.target.value
-                                        )
+                                    value={nickname}
+                                    onChange={(event) =>
+                                        setNickname(event.target.value)
                                     }
-                                    disabled={
-                                        isSaving
-                                    }
+                                    disabled={isSaving}
                                 />
                             </div>
 
-                            <div className="md:col-span-2">
+                            <div>
                                 <Label>
-                                    Enlace o contacto
-
-                                    <span className="text-error-500">
-                                        {" "}
-                                        *
-                                    </span>
+                                    Etiqueta visible
                                 </Label>
 
                                 <Input
                                     type="text"
-                                    placeholder="Ej. https://linkedin.com/... o contacto@cimas.com"
-                                    value={
-                                        url
+                                    placeholder="Ej. Oficina principal"
+                                    value={label}
+                                    onChange={(event) =>
+                                        setLabel(event.target.value)
                                     }
-                                    onChange={(
-                                        event
-                                    ) =>
-                                        setUrl(
-                                            event.target.value
-                                        )
-                                    }
-                                    disabled={
-                                        isSaving
-                                    }
+                                    disabled={isSaving}
                                 />
 
                                 <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                                    Puedes ingresar una URL, correo electrónico, teléfono o usuario,
-                                    dependiendo del tipo seleccionado.
+                                    Opcional. Si no ingresas una etiqueta, se utilizará el nombre o valor.
+                                </p>
+                            </div>
+
+                            <div>
+                                <Label>
+                                    Enlace o contacto
+
+                                    {!isInformational && (
+                                        <span className="text-error-500">
+                                            {" "}*
+                                        </span>
+                                    )}
+                                </Label>
+
+                                <Input
+                                    type="text"
+                                    placeholder={
+                                        isInformational
+                                            ? "Opcional"
+                                            : "Ej. https://linkedin.com/... o contacto@cimas.com"
+                                    }
+                                    value={url}
+                                    onChange={(event) =>
+                                        setUrl(event.target.value)
+                                    }
+                                    disabled={isSaving}
+                                />
+
+                                <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                    {isInformational
+                                        ? "Para RUC y Dirección puedes dejar este campo vacío."
+                                        : "Ingresa la dirección web, correo o contacto correspondiente."}
                                 </p>
                             </div>
                         </div>
@@ -451,7 +406,8 @@ export default function SocialNetworkProfileForm({
                             size="sm"
                             disabled={
                                 isSaving ||
-                                isLoadingNetworks
+                                isLoadingNetworks ||
+                                (isEditMode && isLoadingProfile)
                             }
                             className="min-w-40"
                         >

@@ -1,11 +1,9 @@
-import {
-  create,
-} from "zustand";
+import { create } from "zustand";
 
 import {
   createSocialNetworkProfile,
   deleteSocialNetworkProfile,
-  getSocialNetworkProfileById,
+  getSocialNetworkProfileByUuid,
   getSocialNetworkProfiles,
   getSocialNetworks,
   updateSocialNetworkProfile,
@@ -23,226 +21,185 @@ interface SocialNetworkState {
 
   profiles: SocialNetworkProfile[];
 
-  pagination:
-    | SocialNetworkProfilePagination
-    | null;
+  pagination: SocialNetworkProfilePagination | null;
 
-  currentProfile:
-    | SocialNetworkProfile
-    | null;
+  currentProfile: SocialNetworkProfile | null;
 
   isLoading: boolean;
-
   isLoadingNetworks: boolean;
-
   isLoadingProfile: boolean;
-
   isSaving: boolean;
 
-  deletingProfileId:
-    | number
-    | null;
+  deletingProfileUuid: string | null;
 
-  fetchSocialNetworks:
-    () => Promise<void>;
+  fetchSocialNetworks: () => Promise<void>;
 
-  fetchProfiles:
-    (page?: number) => Promise<void>;
+  fetchProfiles: (page?: number) => Promise<void>;
 
-  fetchProfile:
-    (profileId: number) => Promise<void>;
+  fetchProfile: (profileUuid: string) => Promise<void>;
 
-  createProfile:
-    (
-      payload: SocialNetworkProfilePayload
-    ) => Promise<SocialNetworkProfile>;
+  createProfile: (
+    payload: SocialNetworkProfilePayload
+  ) => Promise<SocialNetworkProfile>;
 
-  updateProfile:
-    (
-      profileId: number,
-      payload: SocialNetworkProfilePayload
-    ) => Promise<SocialNetworkProfile>;
+  updateProfile: (
+    profileUuid: string,
+    payload: SocialNetworkProfilePayload
+  ) => Promise<SocialNetworkProfile>;
 
-  deleteProfile:
-    (profileId: number) => Promise<void>;
+  deleteProfile: (profileUuid: string) => Promise<void>;
 
-  clearCurrentProfile:
-    () => void;
+  clearCurrentProfile: () => void;
 }
 
 export const useSocialNetworkStore =
-  create<SocialNetworkState>(
-    (set, get) => ({
-      socialNetworks: [],
+  create<SocialNetworkState>((set, get) => ({
+    socialNetworks: [],
 
-      profiles: [],
+    profiles: [],
 
-      pagination: null,
+    pagination: null,
 
-      currentProfile: null,
+    currentProfile: null,
 
-      isLoading: false,
+    isLoading: false,
 
-      isLoadingNetworks: false,
+    isLoadingNetworks: false,
 
-      isLoadingProfile: false,
+    isLoadingProfile: false,
 
-      isSaving: false,
+    isSaving: false,
 
-      deletingProfileId: null,
+    deletingProfileUuid: null,
 
-      fetchSocialNetworks: async () => {
+    fetchSocialNetworks: async () => {
+      set({
+        isLoadingNetworks: true,
+      });
+
+      try {
+        const response = await getSocialNetworks();
+
         set({
-          isLoadingNetworks: true,
+          socialNetworks: response.data,
         });
-
-        try {
-          const response =
-            await getSocialNetworks();
-
-          set({
-            socialNetworks:
-              response.data,
-          });
-        } finally {
-          set({
-            isLoadingNetworks: false,
-          });
-        }
-      },
-
-      fetchProfiles: async (
-        page = 1
-      ) => {
+      } finally {
         set({
-          isLoading: true,
+          isLoadingNetworks: false,
         });
+      }
+    },
 
-        try {
-          const response =
-            await getSocialNetworkProfiles(
-              page
-            );
+    fetchProfiles: async (page = 1) => {
+      set({
+        isLoading: true,
+      });
 
-          set({
-            profiles:
-              response.data.data,
+      try {
+        const response = await getSocialNetworkProfiles(page);
 
-            pagination:
-              response.data,
-          });
-        } finally {
-          set({
-            isLoading: false,
-          });
-        }
-      },
-
-      fetchProfile: async (
-        profileId
-      ) => {
         set({
-          isLoadingProfile: true,
+          profiles: response.data.data,
+          pagination: response.data,
         });
-
-        try {
-          const response =
-            await getSocialNetworkProfileById(
-              profileId
-            );
-
-          set({
-            currentProfile:
-              response.data,
-          });
-        } finally {
-          set({
-            isLoadingProfile: false,
-          });
-        }
-      },
-
-      createProfile: async (
-        payload
-      ) => {
+      } finally {
         set({
-          isSaving: true,
+          isLoading: false,
         });
+      }
+    },
 
-        try {
-          const response =
-            await createSocialNetworkProfile(
-              payload
-            );
+    fetchProfile: async (profileUuid) => {
+      set({
+        isLoadingProfile: true,
+        currentProfile: null,
+      });
 
-          return response.data;
-        } finally {
-          set({
-            isSaving: false,
-          });
-        }
-      },
+      try {
+        const response =
+          await getSocialNetworkProfileByUuid(profileUuid);
 
-      updateProfile: async (
-        profileId,
-        payload
-      ) => {
         set({
-          isSaving: true,
+          currentProfile: response.data,
         });
-
-        try {
-          const response =
-            await updateSocialNetworkProfile(
-              profileId,
-              payload
-            );
-
-          set({
-            currentProfile:
-              response.data,
-          });
-
-          return response.data;
-        } finally {
-          set({
-            isSaving: false,
-          });
-        }
-      },
-
-      deleteProfile: async (
-        profileId
-      ) => {
+      } finally {
         set({
-          deletingProfileId:
-            profileId,
+          isLoadingProfile: false,
         });
+      }
+    },
 
-        try {
-          await deleteSocialNetworkProfile(
-            profileId
+    createProfile: async (payload) => {
+      set({
+        isSaving: true,
+      });
+
+      try {
+        const response =
+          await createSocialNetworkProfile(payload);
+
+        return response.data;
+      } finally {
+        set({
+          isSaving: false,
+        });
+      }
+    },
+
+    updateProfile: async (profileUuid, payload) => {
+      set({
+        isSaving: true,
+      });
+
+      try {
+        const response =
+          await updateSocialNetworkProfile(
+            profileUuid,
+            payload
           );
 
-          const currentPage =
-            get().pagination
-              ?.current_page ?? 1;
-
-          await get().fetchProfiles(
-            currentPage
-          );
-        } finally {
-          set({
-            deletingProfileId:
-              null,
-          });
-        }
-      },
-
-      clearCurrentProfile: () => {
         set({
-          currentProfile: null,
+          currentProfile: response.data,
         });
-      },
-    })
-  );
+
+        return response.data;
+      } finally {
+        set({
+          isSaving: false,
+        });
+      }
+    },
+
+    deleteProfile: async (profileUuid) => {
+      set({
+        deletingProfileUuid: profileUuid,
+      });
+
+      try {
+        await deleteSocialNetworkProfile(profileUuid);
+
+        const currentPage =
+          get().pagination?.current_page ?? 1;
+
+        const shouldGoBack =
+          get().profiles.length === 1 &&
+          currentPage > 1;
+
+        await get().fetchProfiles(
+          shouldGoBack
+            ? currentPage - 1
+            : currentPage
+        );
+      } finally {
+        set({
+          deletingProfileUuid: null,
+        });
+      }
+    },
+
+    clearCurrentProfile: () => {
+      set({
+        currentProfile: null,
+      });
+    },
+  }));
